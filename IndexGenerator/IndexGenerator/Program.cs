@@ -9,12 +9,12 @@ namespace IndexGenerator
     public enum IndexError { OK, NoSpace, TooLong }
     class IndexGenerator
     {
-        private Dictionary<string, List<int>> index;
+        private SortedDictionary<string, List<int>> index;
         private StringBuilder sb; 
 
         public IndexGenerator()
         {
-            index = new Dictionary<string, List<int>>();
+            index = new SortedDictionary<string, List<int>>();
             sb = new StringBuilder(255);
         }
 
@@ -33,13 +33,13 @@ namespace IndexGenerator
                 {
                     if(sb.Length > 1)
                     {
-                        if (index.ContainsKey(sb.ToString()) == false)
+                        if (index.ContainsKey(sb.ToString().ToLower()) == false)
                         {
-                            index.Add(sb.ToString(), new List<int>(new int[] { i-sb.Length }));
+                            index.Add(sb.ToString().ToLower(), new List<int>(new int[] { i-sb.Length }));
                         }
                         else
                         {
-                            index[sb.ToString()].Add(i-sb.Length);
+                            index[sb.ToString().ToLower()].Add(i-sb.Length);
                         }
                     }
                     sb.Clear();
@@ -55,7 +55,7 @@ namespace IndexGenerator
             
             foreach(KeyValuePair<string, List<int>> kv in index)
             {
-                sb.Append(kv.Key + '\t');
+                sb.Append(kv.Key.PadRight(40));
                 sb.AppendLine(string.Join(",", kv.Value));
             }
             return sb.ToString();
@@ -67,13 +67,13 @@ namespace IndexGenerator
         static void Main(string[] args)
         {
             string txt = File.ReadAllText("Text.txt");
-            IndexGenerator ig = new IndexGenerator();
+            IndexGenerator mainIndex = new IndexGenerator();
 
             Stopwatch sw = Stopwatch.StartNew();
-            ig.AddToIndex(txt);
+            mainIndex.AddToIndex(txt);
             sw.Stop();
 
-            Console.WriteLine(ig);
+            Console.WriteLine(mainIndex);
             Console.WriteLine($"Čas zpracování: {sw.ElapsedMilliseconds} ms.");
         }
     }
