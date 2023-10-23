@@ -18,6 +18,11 @@ namespace WorkWithJSON
 
     public class SpaceBody
     {
+        // Kdybychom nepoužili atribut JsonProperty, Newtonsoft by pro pojmenování
+        // elementů v  JSON použil názvy vlastností (Name, Mass, atd.)
+        // To většinou nechceme nebo nemůžeme použít, protože 
+        // např. využíváme API, kde jména definoval ten, kdo API poskytuje.
+
         [JsonProperty("nameOfBody")]
         public string Name { get; set; }
 
