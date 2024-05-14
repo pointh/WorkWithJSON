@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace WorkWithHttpClient
 {
@@ -40,7 +41,7 @@ namespace WorkWithHttpClient
 
     class WorkWithHttpClient
     {
-        // async ještě probereme, teď ho berte tak jak je.
+        static HttpClient httpClient;
         static async Task Main(string[] args)
         {
             SpaceBody earth = new SpaceBody
@@ -52,30 +53,24 @@ namespace WorkWithHttpClient
                 IsInhabited = false
             };
 
-            var earthJSON = JsonConvert.SerializeObject(earth);
-
-            
+            var earthJSON = JsonConvert.SerializeObject(earth);  
             HttpContent content = new StringContent(earthJSON, Encoding.UTF8, "application/json");
             // StringContent dědí z ByteContent a ten dědí z abstraktní HttpContent
 
             // Toto je klient, který funguje stejně jako náš browser, jen je s ním těžší pořízení
-            HttpClient htc = new HttpClient();
+            httpClient = new HttpClient();
 
             try
             {
-                // tohle je testovací sink pro post/get requesty
-                // Sink ssps jsem vytvořil před týdnem, pokud ho smazali, vytvořte si "New Random Toilet"
-                // a nově vytvořenou adresu vložte do následujícího odkazu.
-                // Na adrese, ve které vynecháte /post (http://ptsv2.com/t/cqzh9-1608204865) uvidíte obsah toho, 
-                // co jsete poslali na server
+                // tohle je testovací sink pro post: https://httpbin.org/post
 
                 // HttpResponseMessage není tak jednoduchá, jak by se mohlo zdát
-                // breakpoint za voláním PostAsync ukáže, co všechno se přenáší mezi klientem a serverem ...
-
                 // await pošle úlohu do thread pool vlákna. V něm zavolá metodu PostAsync a pošle content
                 // na server na uvedené adrese
-                HttpResponseMessage response = await htc.PostAsync("http://ptsv2.com/t/cqzh9-1608204865/post", content);
+                HttpResponseMessage response = await httpClient.PostAsync("https://httpbin.org/post", content);
+                // breakpoint za voláním PostAsync ukáže, co všechno se přenáší mezi klientem a serverem ...
 
+                Console.WriteLine("Post");
                 Console.WriteLine("Headers");
                 foreach (KeyValuePair<string, IEnumerable<string>> v in response.Headers )
                 {
@@ -91,26 +86,20 @@ namespace WorkWithHttpClient
                 // provedeme načtení na thread pool
                 Console.WriteLine(await response.Content.ReadAsStringAsync());
                 Console.WriteLine();
-
-                Console.WriteLine("TrailingHeaders");
-                foreach (KeyValuePair<string, IEnumerable<string>> v in response.TrailingHeaders)
-                {
-                    Console.Write($"Klíč {v.Key}, Hodnota: ");
-                    foreach (var t in v.Value)
-                    {
-                        Console.Write($"{t}");
-                    }
-                    Console.WriteLine();
-                }
-
                 Console.WriteLine($"\nÚspěch: {response.IsSuccessStatusCode} Status: {response.StatusCode}");
-
                 Console.WriteLine(response);
+
+                Console.WriteLine("Get");
+                response = await httpClient.GetAsync("https://httpbin.org/html");
+                Console.WriteLine("Response");
+                Console.WriteLine(response);
+                Console.WriteLine("Content");
+                Console.WriteLine(await response.Content.ReadAsStringAsync());
             }
             // když něco selže ...
             catch (HttpRequestException hre)
             {
-                Console.WriteLine("Chyba: Server neslyší:" + hre);
+                Console.WriteLine("Problém při zpracovaní požadavku:" + hre);
             }
 
         }
